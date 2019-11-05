@@ -4,7 +4,11 @@
 ***code will be upload soon.***
 
 # Requirements:
-
+tensorflow>=1.12
+numpy
+opencv
+scipy
+ffmpeg
 
 # Code usage
 The method reads the video as a sequence of images. The sequence of images is generated using ffmpeg.
