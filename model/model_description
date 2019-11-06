@@ -1,0 +1,2 @@
+color_5, color_10, color_20, color_40 denotes the parametes used to denoise the color video with noise nevel of 5, 10, 20, 40 separately.
+garyscale_5, garyscale_10, garyscale_20, garyscale_40 denotes the parametes used to denoise the garyscale video with noise nevel of 5, 10, 20, 40 separately.
