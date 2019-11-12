@@ -1,8 +1,6 @@
 # M2MNet
 **M2MNet:Multiframe to Multiframe Network for Video Denoising with Spatial and Temporal Convolution**
 
-# ***code will be upload soon.***
-
 # Requirements:
 * tensorflow>=1.12
 * numpy
