@@ -8,7 +8,7 @@ import h5py
 import glob
 frame_length=4
 class denoiser(object):
-    def __init__(self, sess, is_color=1, sigma=20, lamda=1.0,scale=2, batch_size=128):
+    def __init__(self, sess, is_color=1, sigma=20, lamda=1.0,scale=2, batch_size=16):
         self.sess = sess
         self.is_color=is_color
         if self.is_color:
@@ -63,66 +63,8 @@ class denoiser(object):
         init = tf.global_variables_initializer()
         self.sess.run(init)
         print("[*] Initialize model successfully...")
-        print(np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
-    def evaluate(self, iter_num, test_data, sample_dir, summary_merged, summary_writer):
-        # assert test_data value range is 0-255
-        print("[*] Evaluating...")
-        #lines = open('data/test.list', 'r')
-        lines = test_data
 
-        clips = []
-        psnr_sum_all=0
-        for ii in range(len(lines)):
-            line = lines[ii].strip('\n').split()
-            dirname = './data/'+ line[0]
-            print(dirname)
-            for parent, dirnames, filenames in os.walk(dirname):
-                filenames = sorted(filenames)
-                test_vedio = []
-                for i in range(0, len(filenames)):
-                    image_name = str(dirname) + '/' + str(filenames[i])
-                    if self.is_color:
-                        img = Image.open(image_name).convert("RGB")
-                    else:
-                        img = Image.open(image_name).convert("L")
-                    img_data = np.reshape(np.array(img, dtype="uint8"),(img.size[1], img.size[0], self.input_c_dim))
-                    test_vedio.append(img_data)
-            test_vedio=np.array(test_vedio).astype(np.float32)/255.0
-            test_vedio=np.expand_dims(test_vedio,axis=0)
-            count=0
-            psnr_sum=0
-            for idx in range(0,len(filenames)-frame_length+1,frame_length):
-                clean_image = test_vedio[:,idx:idx+frame_length,:,:,:]
-                output_clean_image,noisy_image,psnr_summary= self.sess.run([self.Y,self.X,summary_merged],
-                                   feed_dict={self.Y_: clean_image,                                                   
-                                              self.is_training: False})
-                #print(np.shape(output_clean_image))
-                summary_writer.add_summary(psnr_summary, iter_num)
-                groundtruth = np.clip(255*test_vedio[:,idx:idx+frame_length,:,:,:], 0, 255).astype('uint8')
-                noisyimage = np.clip(255 * noisy_image, 0, 255).astype('uint8')
-                outputimage = np.clip(255 * output_clean_image, 0, 255).astype('uint8')
-                # calculate PSNR
-                for frame_num in range(frame_length):
-
-                    psnr = cal_psnr(groundtruth[0,frame_num,:,:,:], outputimage[0,frame_num,:,:,:])
-                    print("img%d PSNR: %.2f" % (count + 1, psnr))
-                    psnr_sum += psnr
-                    count=count+1
-                    save_images(os.path.join(sample_dir, 'test%d_%d.png' % (idx + 1, iter_num)),
-                             groundtruth[0,frame_num,:,:,:], noisyimage[0,frame_num,:,:,:], outputimage[0,frame_num,:,:,:],self.is_color)
-            avg_psnr = psnr_sum / count
-            psnr_sum_all+=avg_psnr
-            print(dirname)
-            print("--- Test ---- Average PSNR %.2f ---" % avg_psnr)
-            f=open("test_delta_5.txt","a+")
-            f.write("Epoch: %d , Average PSNR: %.3f---"%(iter_num,avg_psnr)+"\n")
-        avg_all=psnr_sum_all/len(lines)
-        f.write("Epoch: %d , Average ALL Dataset: %.3f---"%(iter_num,avg_all)+"\n")
-        f.write("\n")
-        f.close()
-
-
-    def train(self, data, eval_data, batch_size, ckpt_dir, epoch, lr, sample_dir, eval_every_epoch=1):
+    def train(self, data, batch_size, ckpt_dir, epoch, lr, eval_every_epoch=1):
         # assert data range is between 0 and 1
         numBatch = int(data.shape[0] / batch_size)
         iter_num = 0
@@ -135,8 +77,6 @@ class denoiser(object):
         summary_psnr = tf.summary.scalar('eva_psnr', self.eva_psnr)
         print("[*] Start training, with start epoch %d start iter %d : " % (start_epoch, iter_num))
         start_time = time.time()
-        self.evaluate(iter_num, eval_data, sample_dir=sample_dir, summary_merged=summary_psnr,
-                      summary_writer=writer)  # eval_data value range is 0-255
         for epoch in range(start_epoch, epoch):
             np.random.shuffle(data)
             
@@ -152,9 +92,6 @@ class denoiser(object):
                 iter_num += 1
                 writer.add_summary(summary, iter_num)
             if np.mod(epoch+1, eval_every_epoch) == 0:
-            #if np.mod(iter_num, 2500) == 0:
-                self.evaluate(iter_num, eval_data, sample_dir=sample_dir, summary_merged=summary_psnr,
-                                summary_writer=writer)  # eval_data value range is 0-255
                 self.save(iter_num, ckpt_dir)
         print("[*] Finish training.")
 
@@ -168,7 +105,6 @@ class denoiser(object):
                    os.path.join(checkpoint_dir, model_name),
                    global_step=iter_num)
 
-    #NOTE: train with batch size 
     def test(self, test_path, paras, save_dir):
 
         print("[*] restore model...")
@@ -204,7 +140,6 @@ class denoiser(object):
                                    feed_dict={self.Y_: clean_image,                                                   
                                               self.is_training: False})
              average_frame_time=(time.time()-start_time)/frame_length
-             #print(np.shape(output_clean_image)
              groundtruth = np.clip(255*test_vedio[:,idx:idx+frame_length,:,:,:], 0, 255).astype('uint8')
              noisyimage = np.clip(255 * noisy_image, 0, 255).astype('uint8')
              outputimage = np.clip(255 * output_clean_image, 0, 255).astype('uint8')

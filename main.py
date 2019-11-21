@@ -18,21 +18,16 @@ parser.add_argument('--is_color', dest='is_color', type=int, default=1, help='co
 parser.add_argument('--sigma', dest='sigma', type=int, default=20, help='noise level')
 parser.add_argument('--phase', dest='phase', default='train', help='train or test')
 parser.add_argument('--checkpoint_dir', dest='ckpt_dir', default='./checkpoint', help='models are saved here')
-parser.add_argument('--paras', dest='paras', default='checkpoint/color_20', help='models are saved here')
-parser.add_argument('--sample_dir', dest='sample_dir', default='./sample', help='sample are saved here')
+parser.add_argument('--paras', dest='paras', default='model/color_20', help='load parameters from here')
 parser.add_argument('--train_path', dest='train_path', default='./data/color_img_clean_pats.npy', help='training file')
 parser.add_argument('--test_dir', dest='test_dir', default='./test', help='test sample are saved here')
-parser.add_argument('--test_path', dest='test_path', default='data/color_test_PHD/football/', help='dataset for testing')
+parser.add_argument('--test_path', dest='test_path', default='data/test_PHD/tennis/', help='dataset for testing')
 args = parser.parse_args()
 
 
 def denoiser_train(denoiser, lr):
     with load_data(filepath=args.train_path) as data:
-        print(len(data))
-        lines = open('./data/test_color.list', 'r')
-        eval_files = list(lines)
-        denoiser.train(data, eval_files, batch_size=args.batch_size, ckpt_dir=args.ckpt_dir, epoch=args.epoch, lr=lr,
-                       sample_dir=args.sample_dir)
+        denoiser.train(data, batch_size=args.batch_size, ckpt_dir=args.ckpt_dir, epoch=args.epoch, lr=lr)
 
 
 def denoiser_test(denoiser):
@@ -40,10 +35,7 @@ def denoiser_test(denoiser):
 
 
 def main(_):
-    if args.phase == 'train':
-        if not os.path.exists(args.sample_dir):
-           os.makedirs(args.sample_dir)
-    elif args.phase == 'test':
+    if args.phase == 'test':
          if not os.path.exists(args.test_dir):
             os.makedirs(args.test_dir)
 
@@ -53,7 +45,7 @@ def main(_):
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
         print("GPU\n")
         config = tf.ConfigProto() 
-        config.gpu_options.allow_growth = False #
+        config.gpu_options.allow_growth = True #
         with tf.Session(config=config) as sess:
             model = denoiser(sess, is_color=args.is_color,sigma=args.sigma,batch_size=args.batch_size)
             if args.phase == 'train':
