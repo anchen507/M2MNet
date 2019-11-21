@@ -36,17 +36,6 @@ def get_video_indices(filename):
     random.shuffle(video_indices)
     return video_indices
 
-def get_test_num(filename):
-    lines = open(filename, 'r')
-    return len(list(lines))
-def get_video_indices2(filename):
-    lines = open(filename, 'r')
-    #Shuffle data
-    lines = list(lines)
-    video_indices = list(range(len(lines)))
-    train_video_indices = video_indices[:]
-    return train_video_indices
-
 def frame_process(clip, x,y, channel_num):
     frames_num = len(clip)
     croped_frames = np.zeros([frames_num, args.pat_size, args.pat_size, channel_num]).astype(np.float32)
