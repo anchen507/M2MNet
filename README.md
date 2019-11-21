@@ -1,5 +1,5 @@
 # M2MNet
-**M2MNet:Multiframe to Multiframe Network for Video Denoising with Spatial and Temporal Convolution**
+**M2MNet:A Multiframe-to-Multiframe Network for Video Denoising with Spatial and Temporal Convolution**
 
 # Requirements:
 * tensorflow>=1.12
@@ -17,7 +17,7 @@
 
 * **Note:** you can add command line arguments according to the source code, for example：
 * python main.py --batch_size 32
-* python main.py --lr 0.0001
+* python main.py --lr 0.00005
 
 ## Test
 * ***Example:*** denoising color video with noise level (sigma) of 20.
