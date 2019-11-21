@@ -20,6 +20,7 @@
 * python main.py --lr 0.00005
 
 ## Test
+* python main.py --phase test --is_color '0 or 1' --sigma 'noise level' --paras 'model path' --test_path 'video path'
 * ***Example:*** denoising color video with noise level (sigma) of 20.
 * python main.py --phase test --is_color 1 --sigma 20 --paras model/color_20 --test_path data/tennis
 
